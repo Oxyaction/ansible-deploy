@@ -1,0 +1,51 @@
+- name: Deploy
+  hosts: services-dev
+  become: yes
+  become_user: deploy
+  gather_facts: no
+  vars:
+    home_dir: /home/deploy
+    services_dir: "{{ home_dir }}/services"
+    latest_build_symlink: "{{ services_dir }}/build_latest"
+    build_id: "1"
+    build_dir: "{{ services_dir }}/build_{{ build_id }}"
+    migration_compose_file:  "{{ latest_build_symlink }}/docker-compose.migrations.yml"
+    services_compose_file: "{{ latest_build_symlink }}/docker-compose.yml"
+    migration_project: dev-services-backend-migrations
+    services_project: dev-services-backend
+    migration_services:
+      - event-service
+      - user-service
+      - auth-service
+    image_tag: latest
+
+  tasks:
+    - name: Remove build dir
+      file:
+        path: "{{ build_dir }}"
+        state: absent
+
+    - name: Create build dir
+      file:
+        path: "{{ build_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Remove previous deployment symlink
+      file:
+        path: "{{ latest_build_symlink }}"
+        state: absent
+    
+    - name: Create new build symlink
+      file:
+        src: "{{ build_dir }}"
+        dest: "{{ latest_build_symlink }}"
+        state: link
+    
+    - name: Add docker .env file
+      template:
+        src: files/.env.j2
+        dest: "{{ latest_build_symlink }}/.env"
+      
+    - import_tasks: ./tasks/migrate.yml
+    - import_tasks: ./tasks/run-services.yml

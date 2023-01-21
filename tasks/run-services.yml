@@ -1,0 +1,10 @@
+- name: copy compose
+  copy:
+    src: docker-compose.dev.yml
+    dest: "{{ services_compose_file }}"
+
+- name: pull new images
+  shell: docker-compose -f {{ services_compose_file }} -p {{ services_project }} pull --quiet
+
+- name: run services
+  shell: docker-compose -f {{ services_compose_file }} -p {{ services_project }} up --build -d --remove-orphans

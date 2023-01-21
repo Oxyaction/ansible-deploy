@@ -1,0 +1,9 @@
+- name: copy migrations
+  copy:
+    src: docker-compose.dev.migrations.yml
+    dest: "{{ migration_compose_file }}"
+
+- name: run migrations
+  shell: docker-compose -f {{ migration_compose_file }} -p {{ migration_project }} run --rm {{ item }}
+  with_items: "{{ migration_services }}"
+

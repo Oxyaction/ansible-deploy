@@ -1,0 +1,94 @@
+version: '3.7'
+services:
+  # internal
+  event-service:
+    image: ${REGISTRY}/services/event-service:${IMAGE_TAG}
+    restart: always
+    env_file: .env
+    volumes:
+      - /home/deploy/.gcp/gcp-key.json:/app/gcp-key.json
+
+  user-service:
+    image: ${REGISTRY}/services/user-service:${IMAGE_TAG}
+    restart: always
+    env_file: .env
+    volumes:
+      - /home/deploy/.gcp/gcp-key.json:/app/gcp-key.json
+
+  chat-service:
+    image: ${REGISTRY}/services/chat-service:${IMAGE_TAG}
+    restart: always
+    env_file: .env
+
+  notification-service:
+    image: ${REGISTRY}/services/notification-service:${IMAGE_TAG}
+    restart: always
+    env_file: .env
+
+  # internal api
+  chat-api:
+    image: ${REGISTRY}/services/chat-service:${IMAGE_TAG}
+    restart: always
+    env_file: .env
+    command: start:api
+
+  user-api:
+    image: ${REGISTRY}/services/user-service:${IMAGE_TAG}
+    restart: always
+    env_file: .env
+    command: start:api
+
+  event-api:
+    image: ${REGISTRY}/services/event-service:${IMAGE_TAG}
+    restart: always
+    env_file: .env
+    command: start:api
+
+  # kafka handlers
+  chat-handler:
+    image: ${REGISTRY}/services/chat-service:${IMAGE_TAG}
+    restart: always
+    env_file: .env
+    command: start:handler
+
+  sms-handler:
+    image: ${REGISTRY}/services/sms-service:${IMAGE_TAG}
+    restart: always
+    env_file: .env
+    command: start:handler
+
+  notification-handler:
+    image: ${REGISTRY}/services/notification-service:${IMAGE_TAG}
+    restart: always
+    env_file: .env
+    volumes:
+      - /home/deploy/.gcp/firebase-key.json:/app/firebase-key.json
+    command: start:handler
+
+  # public services
+  gateway-service:
+    image: ${REGISTRY}/services/gateway-service:${IMAGE_TAG}
+    restart: always
+    ports:
+      - 3000:8080
+    env_file: .env
+
+  auth-service:
+    image: ${REGISTRY}/services/auth-service:${IMAGE_TAG}
+    restart: always
+    ports:
+      - 3001:8080
+    env_file: .env
+
+  subscription-service:
+    image: ${REGISTRY}/services/subscription-service:${IMAGE_TAG}
+    restart: always
+    ports:
+      - 3002:8080
+    env_file: .env
+
+
+networks:
+  default:
+    name: invit_dev
+    external: true

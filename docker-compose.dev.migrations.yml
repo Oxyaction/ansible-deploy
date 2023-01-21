@@ -1,0 +1,24 @@
+version: '3.7'
+services:
+  event-service:
+    image: ${REGISTRY}/services/event-service:${IMAGE_TAG}
+    entrypoint: npm
+    env_file: .env
+    command: [run, migrate:up]
+
+  user-service:
+    image: ${REGISTRY}/services/user-service:${IMAGE_TAG}
+    entrypoint: npm
+    env_file: .env
+    command: [run, migrate:up]
+
+  auth-service:
+    image: ${REGISTRY}/services/auth-service:${IMAGE_TAG}
+    entrypoint: npm
+    env_file: .env
+    command: [run, migrate:up]
+
+networks:
+  default:
+    name: invit_dev
+    external: true
